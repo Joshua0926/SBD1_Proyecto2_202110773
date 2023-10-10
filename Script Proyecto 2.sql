@@ -515,7 +515,7 @@ CALL crearCurso(102, 'Matemática Básica 2', 0, 7, 0,1);
 CALL habilitarCurso(101, '1S', 200200001, 25, 'A');
 CALL habilitarCurso(101, '1S', 200200001, 25, 'C');
 
-CALL agregarHorario(2, 4, '9:00-10:40');
-call habilitarCurso(789,'VD',202100121,60,'A');
-call crearCurso(789, 'Administ', 5, 4, 1, 0);
-call registrarDocente(202100121,'Pablo David', 'Osorio Tally', '2003-09-26', 'joshuaosoriotally@gmail.com', '+50250367150',  '7av 14-74 zona1', '3065420560401')
+CALL agregarHorario(1, 2, '9:00-10:40');
+CALL agregarHorario(2, 1, '9:00-10:40');
+CALL agregarHorario(2, 2, '9:00-10:40');
+
