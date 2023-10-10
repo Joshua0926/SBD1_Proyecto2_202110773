@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS Curso (
 -- Crear la tabla Ciclo si no existe
 CREATE TABLE IF NOT EXISTS Ciclo (
     id_ciclo INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL
+    nombre VARCHAR(2) NOT NULL
 );
 
 -- Crear la tabla Seccion si no existe
