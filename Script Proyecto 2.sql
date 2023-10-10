@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS HorarioEnCurso
 CREATE TABLE IF NOT EXISTS Asignacion(
 id_asignacion INT PRIMARY KEY AUTO_INCREMENT,
 asignado BIT,
-carnet VARCHAR(255),
+carnet BIGINT,
 id_cursohabilitado INT,
 FOREIGN KEY (carnet) REFERENCES Estudiante(carnet),
 FOREIGN KEY (id_cursohabilitado) REFERENCES CursoHabilitado(id_cursohabilitado)
@@ -422,7 +422,7 @@ END;
 //
 DELIMITER ;
 
-
+-- Crear el procedimiento para habilitar curso
 DELIMITER //
 CREATE PROCEDURE habilitarCurso(
     IN id_curso INT,
@@ -462,7 +462,7 @@ END;
 //
 DELIMITER ;
 
-
+-- Crear el procedimiento para agregar horario
 DELIMITER //
 CREATE PROCEDURE agregarHorario(
     IN nuevo_id_cursohabilitado INT,
@@ -498,6 +498,64 @@ END;
 //
 DELIMITER ;
 
+-- Crear el procedimiento para asignar estudiantes a cursos
+DELIMITER //
+CREATE PROCEDURE asignarCurso(
+    IN nuevo_id_curso INT,
+    IN nuevo_ciclo VARCHAR(2),
+    IN nuevo_seccion CHAR(1),
+    IN nuevo_id_estudiante BIGINT
+)
+BEGIN
+    DECLARE import_creditos INT;
+    DECLARE import_id_carrera_estudiante INT;
+    DECLARE import_id_carrera_curso INT;
+    DECLARE import_id_seccion INT;
+    DECLARE import_cupomaximo INT;
+    DECLARE import_asignacion INT;
+    DECLARE import_cursohabilitado INT;
+    DECLARE import_id_ciclo INT;
+    SELECT creditos, id_carrera INTO import_creditos, import_id_carrera_estudiante FROM Estudiante WHERE carnet = nuevo_id_estudiante;
+    SELECT id_carrera INTO import_id_carrera_curso FROM Curso WHERE id_curso = nuevo_id_curso;
+    SELECT id_seccion INTO import_id_seccion FROM Seccion WHERE letra = nuevo_seccion;
+    SELECT id_ciclo INTO import_id_ciclo FROM Ciclo WHERE nombre = nuevo_ciclo;
+    SELECT cupomaximo, asignacion, id_cursohabilitado INTO import_cupomaximo, import_asignacion, import_cursohabilitado FROM CursoHabilitado WHERE id_curso = nuevo_id_curso AND id_seccion = import_id_seccion AND id_ciclo = import_id_ciclo;
+    IF NOT EXISTS (SELECT 1 FROM Asignacion WHERE carnet = nuevo_id_estudiante AND id_cursohabilitado = import_cursohabilitado) THEN
+        IF import_id_carrera_curso = import_id_carrera_estudiante OR import_id_carrera_curso = 0 THEN
+            IF (SELECT creditos_necesarios FROM Curso WHERE id_curso = nuevo_id_curso) <= import_creditos THEN
+                IF EXISTS (SELECT 1 FROM CursoHabilitado WHERE id_curso = nuevo_id_curso AND id_seccion = import_id_seccion AND id_ciclo = import_id_ciclo) THEN
+                    IF import_cupomaximo > import_asignacion THEN
+                        INSERT INTO Asignacion (
+                            asignado, 
+                            carnet,
+                            id_cursohabilitado
+                        ) 
+                        VALUES (
+                            1, 
+                            nuevo_id_estudiante,
+                            import_cursohabilitado
+                        );
+                        UPDATE CursoHabilitado SET asignacion = asignacion + 1 WHERE id_cursohabilitado = import_cursohabilitado;
+                    ELSE
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Se ha alcanzado el cupo máximo';
+                    END IF;
+                ELSE
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No existe la sección seleccionada';
+                END IF;
+            ELSE
+                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No tienes los créditos suficientes';
+            END IF;
+        ELSE
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El curso no pertenece a tu carrera';
+        END IF;
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ya te has asignado previamente al curso';
+    END IF;
+END;
+//
+DELIMITER ;
+
+
 CALL crearCarrera('Civil');
 CALL crearCarrera('Mecanica Industrial');
 CALL crearCarrera('Industrial');
@@ -518,4 +576,7 @@ CALL habilitarCurso(101, '1S', 200200001, 25, 'C');
 CALL agregarHorario(1, 2, '9:00-10:40');
 CALL agregarHorario(2, 1, '9:00-10:40');
 CALL agregarHorario(2, 2, '9:00-10:40');
+
+CALL asignarCurso(102, '1S','B',202300001);
+CALL asignarCurso(102, '1S','B',202300002);
 
