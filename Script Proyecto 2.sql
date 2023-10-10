@@ -283,7 +283,7 @@ DELIMITER ;
 -- Crear el procedimiento para agregar datos a la tabla Carrera
 DELIMITER //
 CREATE PROCEDURE crearCarrera(
-    IN nombreCarrera VARCHAR(255)
+    IN nombreCarrera VARCHAR(20)
 )
 BEGIN
 	DECLARE nuevo_id INT;
@@ -315,14 +315,14 @@ DELIMITER ;
 -- Crear el procedimiento para agregar datos a la tabla Estudiante
 DELIMITER //
 CREATE PROCEDURE registrarEstudiante(
-    IN carnet_param VARCHAR(255),
-    IN nombres_param VARCHAR(255),
-    IN apellidos_param VARCHAR(255),
+    IN carnet_param BIGINT,
+    IN nombres_param VARCHAR(50),
+    IN apellidos_param VARCHAR(50),
     IN fecha_nacimiento_param DATE,
-    IN correo_param VARCHAR(255),
-    IN telefono_param VARCHAR(255),
-    IN direccion_param VARCHAR(255),
-    IN dpi_param VARCHAR(255),
+    IN correo_param VARCHAR(100),
+    IN telefono_param VARCHAR(15),
+    IN direccion_param VARCHAR(100),
+    IN dpi_param BIGINT(13),
     IN id_carrera_param INT
 )
 BEGIN
@@ -457,8 +457,17 @@ END;
 //
 DELIMITER ;
 
+CALL crearCarrera('Civil');
+CALL crearCarrera('Mecanica Industrial');
+CALL crearCarrera('Industrial');
+CALL crearCarrera('Sistemas');
+CALL crearCarrera('Mecanica');
+
+CALL registrarEstudiante(202300002,'María','Gómez','1998-08-22','maria@example.com','+50225067895','456 Calle Secundaria',9876543210987,2);
+CALL registrarEstudiante(202300001,'Jose','Carrillo','2002-10-16','jose@gmail.com','+50245897463','Ruta a Escuintla km 12',2997536980101,1);
+
+
 CALL agregarHorario(2, 4, '9:00-10:40');
 call habilitarCurso(789,'VD',202100121,60,'A');
 call crearCurso(789, 'Administ', 5, 4, 1, 0);
-call crearCarrera('Sistemas');
 call registrarDocente(202100121,'Pablo David', 'Osorio Tally', '2003-09-26', 'joshuaosoriotally@gmail.com', '+50250367150',  '7av 14-74 zona1', '3065420560401')
