@@ -36,14 +36,14 @@ CREATE TABLE IF NOT EXISTS Estudiante (
 
 -- Crea la tabla Docente si no existe
 CREATE TABLE IF NOT EXISTS Docente (
-    id_docente VARCHAR(255) PRIMARY KEY,
-    nombres VARCHAR(255),
-    apellidos VARCHAR(255),
+    id_docente BIGINT PRIMARY KEY,
+    nombres VARCHAR(50),
+    apellidos VARCHAR(50),
     fecha_nacimiento DATE,
-    correo VARCHAR(255),
-    telefono VARCHAR(255),
-    direccion VARCHAR(255),
-    dpi VARCHAR(255),
+    correo VARCHAR(100),
+    telefono VARCHAR(15),
+    direccion VARCHAR(100),
+    dpi BIGINT(13),
     fecha_creacion DATETIME
 );
 
@@ -352,14 +352,14 @@ DELIMITER ;
 DELIMITER //
 
 CREATE PROCEDURE registrarDocente(
-    IN p_id_docente VARCHAR(255),
-    IN p_nombres VARCHAR(255),
-    IN p_apellidos VARCHAR(255),
+    IN p_id_docente BIGINT,
+    IN p_nombres VARCHAR(50),
+    IN p_apellidos VARCHAR(50),
     IN p_fecha_nacimiento DATE,
-    IN p_correo VARCHAR(255),
-    IN p_telefono VARCHAR(255),
-    IN p_direccion VARCHAR(255),
-    IN p_dpi VARCHAR(255)
+    IN p_correo VARCHAR(100),
+    IN p_telefono VARCHAR(15),
+    IN p_direccion VARCHAR(100),
+    IN p_dpi BIGINT(13)
 )
 BEGIN
     -- Verificar el formato válido del correo
@@ -466,6 +466,8 @@ CALL crearCarrera('Mecanica');
 CALL registrarEstudiante(202300002,'María','Gómez','1998-08-22','maria@example.com','+50225067895','456 Calle Secundaria',9876543210987,2);
 CALL registrarEstudiante(202300001,'Jose','Carrillo','2002-10-16','jose@gmail.com','+50245897463','Ruta a Escuintla km 12',2997536980101,1);
 
+CALL registrarDocente(200200001,'Javier','Guzmán','1990-01-31','edu@gmail.com',+50278693541,'Antigua Guatemala',2997859611101);
+ 
 
 CALL agregarHorario(2, 4, '9:00-10:40');
 call habilitarCurso(789,'VD',202100121,60,'A');
