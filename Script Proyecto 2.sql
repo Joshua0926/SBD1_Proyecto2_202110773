@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS Docente (
 -- Crear la tabla Curso si no existe
 CREATE TABLE IF NOT EXISTS Curso (
     id_curso INT PRIMARY KEY,
-    nombre VARCHAR(255),
+    nombre VARCHAR(20),
     creditos_necesarios INT,
     creditos_otorgados INT,
     id_carrera INT,
@@ -390,7 +390,7 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE crearCurso(
     IN id_curso INT,
-    IN nombre VARCHAR(255),
+    IN nombre VARCHAR(20),
     IN creditos_necesarios INT,
     IN creditos_otorgados INT,
     IN id_carrera INT,
@@ -468,6 +468,8 @@ CALL registrarEstudiante(202300001,'Jose','Carrillo','2002-10-16','jose@gmail.co
 
 CALL registrarDocente(200200001,'Javier','Guzmán','1990-01-31','edu@gmail.com',+50278693541,'Antigua Guatemala',2997859611101);
  
+CALL crearCurso(101, 'Matemática Básica 1', 0, 7, 0,1);
+CALL crearCurso(102, 'Matemática Básica 2', 0, 7, 0,1);
 
 CALL agregarHorario(2, 4, '9:00-10:40');
 call habilitarCurso(789,'VD',202100121,60,'A');
