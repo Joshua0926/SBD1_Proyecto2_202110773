@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS CursoHabilitado
 	id_cursohabilitado INT PRIMARY KEY AUTO_INCREMENT,
     cupomaximo INT,
     id_seccion INT,
-    id_docente VARCHAR(255),
+    id_docente BIGINT,
     id_ciclo INT,
     id_curso INT,
     asignacion INT DEFAULT 0,
@@ -422,6 +422,47 @@ END;
 //
 DELIMITER ;
 
+
+DELIMITER //
+CREATE PROCEDURE habilitarCurso(
+    IN id_curso INT,
+    IN nombre_ciclo VARCHAR(2),
+    IN id_docente bigint,
+    IN cupomaximo INT,
+    IN nuevo_letra CHAR(1)
+)
+BEGIN
+    DECLARE seccion_id INT;
+    DECLARE ciclo_id INT;
+    SELECT id_seccion INTO seccion_id FROM Seccion WHERE letra = nuevo_letra;
+    IF seccion_id IS NULL THEN
+        INSERT INTO Seccion (letra) VALUES (nuevo_letra);
+        SET seccion_id = LAST_INSERT_ID();
+    END IF;
+    SELECT id_ciclo INTO ciclo_id FROM Ciclo WHERE nombre = nombre_ciclo;
+    IF ciclo_id IS NULL THEN
+        INSERT INTO Ciclo (nombre) VALUES (nombre_ciclo);
+        SET ciclo_id = LAST_INSERT_ID();
+    END IF;
+    INSERT INTO cursohabilitado (
+    cupomaximo, 
+    id_seccion, 
+    id_docente,
+    id_curso,
+    id_ciclo
+    ) 
+    VALUES (
+    cupomaximo, 
+    seccion_id, 
+    id_docente, 
+    id_curso,
+    ciclo_id
+    );
+END;
+//
+DELIMITER ;
+
+
 DELIMITER //
 CREATE PROCEDURE agregarHorario(
     IN nuevo_id_cursohabilitado INT,
@@ -470,6 +511,9 @@ CALL registrarDocente(200200001,'Javier','Guzmán','1990-01-31','edu@gmail.com',
  
 CALL crearCurso(101, 'Matemática Básica 1', 0, 7, 0,1);
 CALL crearCurso(102, 'Matemática Básica 2', 0, 7, 0,1);
+
+CALL habilitarCurso(101, '1S', 200200001, 25, 'A');
+CALL habilitarCurso(101, '1S', 200200001, 25, 'C');
 
 CALL agregarHorario(2, 4, '9:00-10:40');
 call habilitarCurso(789,'VD',202100121,60,'A');
