@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS CursoHabilitado
     id_ciclo INT,
     id_curso INT,
     asignacion INT DEFAULT 0,
+    notas INT DEFAULT 0,
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_seccion) REFERENCES Seccion(id_seccion),
     FOREIGN KEY (id_docente) REFERENCES Docente(id_docente),
@@ -133,6 +134,8 @@ CREATE TABLE IF NOT EXISTS Acta(
 
 -- ------------------- Creación de Triggers ------------------------
 
+-- ------------------- Triggers de INSERT ------------------------
+
 -- Crear el trigger de la tabla Carrera
 DELIMITER //
 CREATE TRIGGER Carrera_Insert_Bitacora
@@ -144,6 +147,7 @@ BEGIN
 END;
 //
 DELIMITER ;
+
 
 -- Crear el trigger de la tabla Estudiante
 DELIMITER //
@@ -277,6 +281,356 @@ END;
 //
 DELIMITER ;
 
+-- --------------- Triggeres de UPDATE ---------------------------
+
+-- Crear el trigger de la tabla Carrera UPDATE
+DELIMITER //
+CREATE TRIGGER Carrera_Update_Bitacora
+AFTER UPDATE ON Carrera FOR EACH ROW
+BEGIN
+    -- Insertar en la tabla Bitacora
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un nuevo registro en la tabla Carrera'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla Asignacion
+CREATE TRIGGER Asignacion_Update_Bitacora
+AFTER UPDATE ON Asignacion FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla Asignacion'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla Acta
+CREATE TRIGGER Acta_Update_Bitacora
+AFTER UPDATE ON Acta FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla Acta'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla Ciclo
+CREATE TRIGGER Ciclo_Update_Bitacora
+AFTER UPDATE ON Ciclo FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla Ciclo'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla Curso
+CREATE TRIGGER Curso_Update_Bitacora
+AFTER UPDATE ON Curso FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla Curso'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla CursoHabilitado
+CREATE TRIGGER CursoHabilitado_Update_Bitacora
+AFTER UPDATE ON CursoHabilitado FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla CursoHabilitado'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla Docente
+CREATE TRIGGER Docente_Update_Bitacora
+AFTER UPDATE ON Docente FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla Docente'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla Estudiante
+CREATE TRIGGER Estudiante_Update_Bitacora
+AFTER UPDATE ON Estudiante FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla Estudiante'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla Horario
+CREATE TRIGGER Horario_Update_Bitacora
+AFTER UPDATE ON Horario FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla Horario'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla HorarioEnCurso
+CREATE TRIGGER HorarioEnCurso_Update_Bitacora
+AFTER UPDATE ON HorarioEnCurso FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla HorarioEnCurso'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla Nota
+CREATE TRIGGER Nota_Update_Bitacora
+AFTER UPDATE ON Nota FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla Nota'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+-- Trigger para la tabla Seccion
+CREATE TRIGGER Seccion_Update_Bitacora
+AFTER UPDATE ON Seccion FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha actualizado un registro en la tabla Seccion'), 'UPDATE');
+END;
+//
+DELIMITER ;
+
+-- --------------- Triggeres de DELETE ---------------------------
+
+-- Crear el trigger de la tabla Carrera DELETE
+DELIMITER //
+CREATE TRIGGER Carrera_Delete_Bitacora
+AFTER DELETE ON Carrera FOR EACH ROW
+BEGIN
+    -- Insertar en la tabla Bitacora
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un nuevo registro en la tabla Carrera'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER Asignacion_Delete_Bitacora
+AFTER DELETE ON Asignacion FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla Asignacion'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER Acta_Delete_Bitacora
+AFTER DELETE ON Acta FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla Acta'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER Ciclo_Delete_Bitacora
+AFTER DELETE ON Ciclo FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla Ciclo'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER Curso_Delete_Bitacora
+AFTER DELETE ON Curso FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla Curso'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER CursoHabilitado_Delete_Bitacora
+AFTER DELETE ON CursoHabilitado FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla CursoHabilitado'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER Docente_Delete_Bitacora
+AFTER DELETE ON Docente FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla Docente'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER Estudiante_Delete_Bitacora
+AFTER DELETE ON Estudiante FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla Estudiante'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER Horario_Delete_Bitacora
+AFTER DELETE ON Horario FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla Horario'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER HorarioEnCurso_Delete_Bitacora
+AFTER DELETE ON HorarioEnCurso FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla HorarioEnCurso'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER Nota_Delete_Bitacora
+AFTER DELETE ON Nota FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla Nota'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER Seccion_Delete_Bitacora
+AFTER DELETE ON Seccion FOR EACH ROW
+BEGIN
+    INSERT INTO Bitacora (fecha, descripcion, tipo)
+    VALUES (NOW(), CONCAT('Se ha eliminado un registro en la tabla Seccion'), 'DELETE');
+END;
+//
+DELIMITER ;
+
+
+
+-- --------------- Creación de Funciones ---------------------------
+
+DELIMITER //
+CREATE FUNCTION ValidarValoresPermitidos(valor VARCHAR(2)) 
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE resultado BOOLEAN DEFAULT FALSE;
+    IF valor IN ('1S', '2S', 'VJ', 'VD') THEN
+        SET resultado = TRUE;
+    END IF;
+    RETURN resultado;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE FUNCTION EsLetraAZ(caracter CHAR(1))
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE esLetra BOOLEAN;
+    SET esLetra = FALSE;
+    IF (ASCII(caracter) BETWEEN ASCII('A') AND ASCII('Z') AND caracter NOT LIKE 'Ñ') THEN
+        SET esLetra = TRUE;
+    END IF;
+
+    RETURN esLetra;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE FUNCTION EsSoloLetras(frase VARCHAR(255)) 
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE i INT;
+    DECLARE len INT;
+    SET i = 1;
+    SET len = LENGTH(frase);
+    WHILE i <= len DO
+        IF NOT (SUBSTRING(frase, i, 1) REGEXP '^[A-Za-zÁÉÍÓÚÜáéíóíü ]$') THEN
+            RETURN FALSE; 
+        END IF;
+        SET i = i + 1;
+    END WHILE;
+    RETURN TRUE;
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE FUNCTION EsEnteroPositivo(valor INT) 
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE es_valido BOOLEAN DEFAULT FALSE;
+    IF valor >= 0 AND valor = FLOOR(valor) THEN
+        SET es_valido = TRUE;
+    END IF;
+    RETURN es_valido;
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE FUNCTION VerificarDia(numero INT) 
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE es_valido BOOLEAN DEFAULT FALSE;
+    IF numero >= 1 AND numero <= 7 THEN
+        SET es_valido = TRUE;
+    END IF;
+    RETURN es_valido;
+END;
+//
+DELIMITER ;
 
 -- --------------- Creación de Procedimientos -----------------------
 
@@ -555,28 +909,439 @@ END;
 //
 DELIMITER ;
 
+-- Crear el procedimiento para desasignar estudiantes a cursos
+DELIMITER //
+CREATE PROCEDURE desasignarCurso(
+    IN nuevo_id_curso INT,
+    IN nuevo_ciclo VARCHAR(2),
+    IN nuevo_seccion CHAR(1),
+    IN nuevo_id_estudiante BIGINT
+)
+BEGIN
+    DECLARE import_id_seccion INT;
+    DECLARE import_asignacion INT;
+    DECLARE import_cursohabilitado INT;
+    DECLARE import_id_ciclo INT;
+    SELECT id_seccion INTO import_id_seccion FROM Seccion WHERE letra = nuevo_seccion;
+    SELECT id_ciclo INTO import_id_ciclo FROM Ciclo WHERE nombre = nuevo_ciclo;
+    SELECT id_cursohabilitado INTO import_cursohabilitado FROM CursoHabilitado WHERE id_curso = nuevo_id_curso AND id_seccion = import_id_seccion AND id_ciclo = import_id_ciclo;
+    SELECT id_asignacion INTO import_asignacion FROM Asignacion WHERE carnet = nuevo_id_estudiante AND id_cursohabilitado = import_cursohabilitado AND asignado=1;
+    IF EXISTS (SELECT 1 FROM Asignacion WHERE carnet = nuevo_id_estudiante AND id_cursohabilitado = import_cursohabilitado AND asignado=1) THEN
+                        UPDATE Asignacion SET asignado = 0 WHERE id_asignacion = import_asignacion;
+                        UPDATE CursoHabilitado SET asignacion = asignacion - 1 WHERE id_cursohabilitado = import_cursohabilitado;
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No existe la asignación seleccionada';
+    END IF;
+END;
+//
+DELIMITER ;
+
+
+-- Crear el procedimiento para ingresar notas
+DELIMITER //
+CREATE PROCEDURE ingresarNota(
+    IN nuevo_id_curso INT,
+    IN nuevo_ciclo VARCHAR(2),
+    IN nuevo_seccion CHAR(1),
+    IN nuevo_id_estudiante BIGINT,
+    IN nuevo_nota INT
+)
+BEGIN
+    DECLARE import_id_seccion INT;
+    DECLARE import_asignacion INT;
+    DECLARE import_cursohabilitado INT;
+    DECLARE import_id_ciclo INT;
+    DECLARE import_creditos INT;
+    IF NOT ValidarValoresPermitidos(nuevo_ciclo) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Nombre de ciclo no válido';
+    END IF;
+    SET nuevo_seccion = UPPER(nuevo_seccion);
+	IF NOT EsLetraAZ(nuevo_seccion) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Se ha ingresado un caracter diferente a una letra';
+    END IF;
+    IF NOT EsEnteroPositivo(nuevo_nota) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El numero que se ha ingresado es incorrecto';
+    END IF;
+    SET nuevo_nota = ROUND(nuevo_nota,0);
+    SELECT creditos_otorgados INTO import_creditos FROM Curso WHERE id_curso = nuevo_id_curso;
+    SELECT id_seccion INTO import_id_seccion FROM Seccion WHERE letra = nuevo_seccion;
+    SELECT id_ciclo INTO import_id_ciclo FROM Ciclo WHERE nombre = nuevo_ciclo;
+    SELECT id_cursohabilitado INTO import_cursohabilitado FROM CursoHabilitado WHERE id_curso = nuevo_id_curso AND id_seccion = import_id_seccion AND id_ciclo = import_id_ciclo;
+    SELECT id_asignacion INTO import_asignacion FROM Asignacion WHERE carnet = nuevo_id_estudiante AND id_cursohabilitado = import_cursohabilitado AND asignado=1;
+    IF EXISTS (SELECT 1 FROM Asignacion WHERE carnet = nuevo_id_estudiante AND id_cursohabilitado = import_cursohabilitado AND asignado=1) THEN
+		IF NOT EXISTS (SELECT 1 FROM Nota WHERE id_asignacion = import_asignacion) THEN
+			INSERT INTO Nota(
+			nota,
+			id_asignacion
+			) 
+			VALUES (
+			nuevo_nota,
+			import_asignacion
+			);
+			IF nuevo_nota >= 61 THEN
+				UPDATE Estudiante SET creditos = creditos + import_creditos WHERE carnet = nuevo_id_estudiante;
+			END IF;
+            UPDATE CursoHabilitado SET notas = notas + 1 WHERE id_cursohabilitado = import_cursohabilitado;
+		ELSE
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ya se ha ingresado la nota a este estudiante';
+		END IF;
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El estudiante no tiene asignado el curso F';
+    END IF;
+END;
+//
+DELIMITER ;																									
+
+-- Crear el procedimiento para generar acta
+DELIMITER //
+CREATE PROCEDURE generarActa(
+    IN nuevo_id_curso INT,
+    IN nuevo_ciclo VARCHAR(2),
+    IN nuevo_seccion CHAR(1)
+)
+BEGIN
+    DECLARE import_id_seccion INT;
+    DECLARE import_cursohabilitado INT;
+    DECLARE import_id_ciclo INT;
+    DECLARE import_notas INT;
+    DECLARE import_asignado INT;
+    IF NOT ValidarValoresPermitidos(nuevo_ciclo) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Nombre de ciclo no válido';
+    END IF;
+    SET nuevo_seccion = UPPER(nuevo_seccion);
+	IF NOT EsLetraAZ(nuevo_seccion) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Se ha ingresado un caracter diferente a una letra';
+    END IF;
+    SELECT id_seccion INTO import_id_seccion FROM Seccion WHERE letra = nuevo_seccion;
+    SELECT id_ciclo INTO import_id_ciclo FROM Ciclo WHERE nombre = nuevo_ciclo;
+    SELECT id_cursohabilitado, notas, asignacion INTO import_cursohabilitado, import_notas, import_asignado FROM CursoHabilitado WHERE id_curso = nuevo_id_curso AND id_seccion = import_id_seccion AND id_ciclo = import_id_ciclo;
+    IF import_notas = import_asignado THEN
+			INSERT INTO Acta (
+            id_cursohabilitado
+            )
+            VALUES (
+            import_cursohabilitado
+            );
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado las notas de todos los estudiantes';
+    END IF;
+END;
+//
+DELIMITER ;
+
+-- --------------- Creación de Procedimientos de Procesamiento de Datos ---------------------------
+-- Consultar Pensum
+DELIMITER //
+CREATE PROCEDURE consultaPensum(IN codigo_carrera INT)
+BEGIN
+    IF NOT EsEnteroPositivo(codigo_carrera) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el código de la carrera correctamente';
+    END IF;
+
+    SELECT 
+        id_curso AS IdCurso, 
+        nombre AS Nombre, 
+        CASE 
+            WHEN obligatorio = 1 THEN 'Si' 
+            WHEN obligatorio = 0 THEN 'No' 
+        END AS Obligatorio, 
+        creditos_necesarios AS CreditosNecesarios
+    FROM Curso
+    WHERE id_carrera = 0 OR id_carrera = codigo_carrera;
+END;
+//
+DELIMITER ;
+
+-- Consultar Estudiante
+DELIMITER //
+CREATE PROCEDURE consultaEstudiante(IN codigo_estudiante INT)
+BEGIN
+	IF NOT EsEnteroPositivo(codigo_estudiante) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el codigo de la persona correctamente';
+    END IF;
+    SELECT carnet AS Carnet, concat(nombres," ", apellidos) AS Nombre, fecha_nacimiento AS FechaNacimiento, correo AS Correo, telefono AS Telefono, direccion AS Direccion, dpi AS DPI, id_carrera AS IdCarrera, creditos AS Creditos
+    FROM estudiante
+    WHERE carnet = codigo_estudiante;
+END;
+//
+DELIMITER ;
+
+-- COnsultar Docente
+DELIMITER //
+CREATE PROCEDURE consultaDocente(IN codigo_docente INT)
+BEGIN
+	IF NOT EsEnteroPositivo(codigo_docente) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el codigo de la persona correctamente';
+    END IF;
+    SELECT id_docente AS SIIF, concat(nombres," ", apellidos) AS Nombre, fecha_nacimiento AS FechaNacimiento, correo AS Correo, telefono AS Telefono, direccion AS Direccion, dpi AS DPI
+    FROM docente
+    WHERE id_docente = codigo_docente;
+END;
+//
+DELIMITER ;
+
+-- Consultar estudiantes asignados
+DELIMITER //
+CREATE PROCEDURE consultarAsignados(
+    IN codigo_curso INT,
+    IN ciclo_nombre VARCHAR(2),
+    IN ciclo_anio INT,
+    IN seccion_letra CHAR(1)
+)
+BEGIN
+	IF NOT ValidarValoresPermitidos(ciclo_nombre) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Nombre de ciclo no válido';
+    END IF;
+    SET seccion_letra = UPPER(seccion_letra);
+	IF NOT EsLetraAZ(seccion_letra) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Se ha ingresado un caracter diferente a una letra';
+    END IF;
+    IF NOT EsEnteroPositivo(ciclo_anio) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el año correctamente';
+    END IF;
+    IF NOT EsEnteroPositivo(codigo_curso) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el codigo del curso correctamente';
+    END IF;
+    SELECT 
+        e.carnet AS Carnet,
+        CONCAT(e.nombres, ' ', e.apellidos) AS Nombre,
+        e.creditos AS Creditos
+    FROM Estudiante e
+    INNER JOIN Asignacion a ON e.carnet = a.carnet
+    INNER JOIN CursoHabilitado ch ON a.id_cursohabilitado = ch.id_cursohabilitado
+    INNER JOIN Seccion s ON ch.id_seccion = s.id_seccion
+    INNER JOIN Ciclo ci ON ch.id_ciclo = ci.id_ciclo
+    INNER JOIN Curso c ON ch.id_curso = c.id_curso
+    WHERE c.id_curso = codigo_curso
+    AND ci.nombre = ciclo_nombre
+    AND YEAR(ch.fecha) = ciclo_anio
+    AND s.letra = seccion_letra
+    AND a.asignado = 1;
+END;
+//
+DELIMITER ;
+
+-- Consultar aprobados
+DELIMITER //
+CREATE PROCEDURE consultarAprobacion(
+    IN codigo_curso INT,
+    IN ciclo_nombre VARCHAR(2),
+    IN ciclo_anio INT,
+    IN seccion_letra CHAR(1)
+)
+BEGIN
+    IF NOT ValidarValoresPermitidos(ciclo_nombre) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Nombre de ciclo no válido';
+    END IF;
+    SET seccion_letra = UPPER(seccion_letra);
+    IF NOT EsLetraAZ(seccion_letra) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Se ha ingresado un caracter diferente a una letra';
+    END IF;
+    IF NOT EsEnteroPositivo(ciclo_anio) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el año correctamente';
+    END IF;
+    IF NOT EsEnteroPositivo(codigo_curso) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el código del curso correctamente';
+    END IF;
+    SELECT 
+        c.id_curso AS CodigoCurso,
+        e.carnet AS Carnet,
+        CONCAT(e.nombres, ' ', e.apellidos) AS NombreCompleto,
+        CASE
+            WHEN COUNT(n.id_nota) > 0 AND MIN(n.nota) >= 61 THEN 'APROBADO'
+            ELSE 'REPROBADO'
+        END AS Estado
+    FROM Curso c
+    CROSS JOIN Estudiante e
+    LEFT JOIN Asignacion a ON e.carnet = a.carnet
+    LEFT JOIN Nota n ON a.id_asignacion = n.id_asignacion
+    INNER JOIN CursoHabilitado ch ON c.id_curso = ch.id_curso
+    INNER JOIN Seccion s ON ch.id_seccion = s.id_seccion
+    INNER JOIN Ciclo ci ON ch.id_ciclo = ci.id_ciclo
+    WHERE c.id_curso = codigo_curso
+    AND ci.nombre = ciclo_nombre
+    AND YEAR(ch.fecha) = ciclo_anio
+    AND s.letra = seccion_letra
+    GROUP BY c.id_curso, e.carnet, NombreCompleto;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE consultarActas(IN codigo_curso INT)
+BEGIN
+	IF NOT EsEnteroPositivo(codigo_curso) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el código del curso correctamente';
+    END IF;
+    SELECT 
+        c.id_curso AS CodigoCurso,
+        s.letra AS Seccion,
+        CASE
+            WHEN ci.nombre = '1S' THEN 'PRIMER SEMESTRE'
+            WHEN ci.nombre = '2S' THEN 'SEGUNDO SEMESTRE'
+            WHEN ci.nombre = 'VJ' THEN 'VACACIONES DE JUNIO'
+            WHEN ci.nombre = 'VD' THEN 'VACACIONES DE DICIEMBRE'
+            ELSE ci.nombre
+        END AS Ciclo,
+        YEAR(ch.fecha) AS Anio,
+        COUNT(n.id_nota) AS CantidadEstudiantes,
+        act.fecha AS FechaGenerado
+    FROM Curso c
+    INNER JOIN CursoHabilitado ch ON c.id_curso = ch.id_curso
+    INNER JOIN Seccion s ON ch.id_seccion = s.id_seccion
+    INNER JOIN Ciclo ci ON ch.id_ciclo = ci.id_ciclo
+    LEFT JOIN Asignacion a ON ch.id_cursohabilitado = a.id_cursohabilitado
+    LEFT JOIN Nota n ON a.id_asignacion = n.id_asignacion
+    LEFT JOIN Acta act ON a.id_cursohabilitado = act.id_cursohabilitado
+    WHERE c.id_curso = codigo_curso AND act.fecha IS NOT NULL
+    GROUP BY CodigoCurso, Seccion, Ciclo, Anio, FechaGenerado
+    ORDER BY FechaGenerado;
+END;
+//
+DELIMITER ;
+
+-- Consultar Desasignados
+DELIMITER //
+CREATE PROCEDURE consultarDesasignacion(
+    IN codigo_curso INT,
+    IN ciclo_nombre VARCHAR(2),
+    IN ciclo_anio INT,
+    IN seccion_letra CHAR(1)
+)
+BEGIN
+    DECLARE total_estudiantes INT;
+    DECLARE desasignados INT;
+    DECLARE porcentaje_desasignacion DECIMAL(5, 2);
+    IF NOT ValidarValoresPermitidos(ciclo_nombre) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Nombre de ciclo no válido';
+    END IF;
+    SET seccion_letra = UPPER(seccion_letra);
+    IF NOT EsLetraAZ(seccion_letra) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Se ha ingresado un caracter diferente a una letra';
+    END IF;
+    IF NOT EsEnteroPositivo(ciclo_anio) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el año correctamente';
+    END IF;
+    IF NOT EsEnteroPositivo(codigo_curso) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el código del curso correctamente';
+    END IF;
+    SELECT COUNT(DISTINCT a.carnet)
+    INTO total_estudiantes
+    FROM Curso c
+    INNER JOIN CursoHabilitado ch ON c.id_curso = ch.id_curso
+    INNER JOIN Seccion s ON ch.id_seccion = s.id_seccion
+    INNER JOIN Ciclo ci ON ch.id_ciclo = ci.id_ciclo
+    INNER JOIN Asignacion a ON ch.id_cursohabilitado = a.id_cursohabilitado
+    WHERE c.id_curso = codigo_curso
+    AND ci.nombre = ciclo_nombre
+    AND YEAR(ch.fecha) = ciclo_anio
+    AND s.letra = seccion_letra;
+    SELECT COUNT(DISTINCT a.carnet)
+    INTO desasignados
+    FROM Curso c
+    INNER JOIN CursoHabilitado ch ON c.id_curso = ch.id_curso
+    INNER JOIN Seccion s ON ch.id_seccion = s.id_seccion
+    INNER JOIN Ciclo ci ON ch.id_ciclo = ci.id_ciclo
+    INNER JOIN Asignacion a ON ch.id_cursohabilitado = a.id_cursohabilitado
+    WHERE c.id_curso = codigo_curso
+    AND ci.nombre = ciclo_nombre
+    AND YEAR(ch.fecha) = ciclo_anio
+    AND s.letra = seccion_letra
+    AND a.asignado = 0;
+    IF total_estudiantes > 0 THEN
+        SET porcentaje_desasignacion = (desasignados / total_estudiantes) * 100;
+    ELSE
+        SET porcentaje_desasignacion = 0;
+    END IF;
+    SELECT 
+        codigo_curso AS CodigoCurso,
+        seccion_letra AS Seccion,
+        CASE
+            WHEN ciclo_nombre = '1S' THEN 'PRIMER SEMESTRE'
+            WHEN ciclo_nombre = '2S' THEN 'SEGUNDO SEMESTRE'
+            WHEN ciclo_nombre = 'VJ' THEN 'VACACIONES DE JUNIO'
+            WHEN ciclo_nombre = 'VD' THEN 'VACACIONES DE DICIEMBRE'
+            ELSE ciclo_nombre
+        END AS Ciclo,
+        ciclo_anio AS Anio,
+        total_estudiantes AS TotalEstudiantes,
+        desasignados AS Desasignados,
+        porcentaje_desasignacion AS PorcentajeDesasignacion;
+END;
+//
+DELIMITER ;
+
 
 CALL crearCarrera('Civil');
 CALL crearCarrera('Mecanica Industrial');
 CALL crearCarrera('Industrial');
 CALL crearCarrera('Sistemas');
 CALL crearCarrera('Mecanica');
-
-CALL registrarEstudiante(202300002,'María','Gómez','1998-08-22','maria@example.com','+50225067895','456 Calle Secundaria',9876543210987,2);
-CALL registrarEstudiante(202300001,'Jose','Carrillo','2002-10-16','jose@gmail.com','+50245897463','Ruta a Escuintla km 12',2997536980101,1);
-
-CALL registrarDocente(200200001,'Javier','Guzmán','1990-01-31','edu@gmail.com',+50278693541,'Antigua Guatemala',2997859611101);
- 
-CALL crearCurso(101, 'Matemática Básica 1', 0, 7, 0,1);
+CALL crearCurso(101, 'Matemática Básica 3', 0, 7, 0,1);
 CALL crearCurso(102, 'Matemática Básica 2', 0, 7, 0,1);
 
+CALL registrarEstudiante(202300002,'María','Gómez','1998-08-22','maria@example.com',25067895,'456 Calle Secundaria',9876543210987,2);
+CALL registrarEstudiante(202300001,'Jose','Carrillo','2002-10-16','jose@gmail.com',45897463,'Ruta a Escuintla km 12',2997536980101,1);
+CALL registrarEstudiante(202300003,'Ma','Gz','1998-08-22','maria@example.com',25067895,'456 Calle Secundaria',9876543210987,2);
+CALL registrarEstudiante(202300004,'Jo','Cllo','2002-10-16','jose@gmail.com',45897463,'Ruta a Escuintla km 12',2997536980101,1);
+
+CALL registrarDocente(200200001,'Javier','Guzmán','1990-01-31','edu@gmail.com',78693541,'Antigua Guatemala',2997859611101);
+
 CALL habilitarCurso(101, '1S', 200200001, 25, 'A');
-CALL habilitarCurso(101, '1S', 200200001, 25, 'C');
+CALL habilitarCurso(102, '1S', 200200001, 25, 'B');
+CALL habilitarCurso(102, '1S', 200200001, 25, 'A');
+
+CALL crearCarrera('Electrica');
 
 CALL agregarHorario(1, 2, '9:00-10:40');
 CALL agregarHorario(2, 1, '9:00-10:40');
 CALL agregarHorario(2, 2, '9:00-10:40');
+CALL agregarHorario(3, 2, '9:00-10:40');
 
-CALL asignarCurso(102, '1S','B',202300001);
 CALL asignarCurso(102, '1S','B',202300002);
+CALL asignarCurso(102, '1S','B',202300001);
+CALL asignarCurso(102, '1S','A',202300004);
+CALL asignarCurso(102, '1S','A',202300003);
+CALL asignarCurso(101, '1S','A',202300002);
+CALL asignarCurso(101, '1S','A',202300004);
+CALL asignarCurso(101, '1S','A',202300003);
+CALL asignarCurso(101, '1S','a',202300001);
+
+CALL desasignarCurso(101, '1S','a',202300001);
+
+CALL ingresarNota(102, '1S','B',202300002, 65);
+CALL ingresarNota(102, '1S','B',202300001, 65);
+CALL ingresarNota(102, '1S','A',202300003, 65);
+CALL ingresarNota(102, '1S','A',202300004, 60);
+
+CALL generarActa(102, '1S','B');
+CALL generarActa(102, '1S','A');
+
+-- Procesamiento de datos
+CALL consultaPensum(4);
+CALL consultaEstudiante(202300001);
+CALL consultaDocente(200200001);
+CALL consultarAsignados(102, '1S', 2023, 'B');
+CALL consultarAprobacion(102, '1S', 2023, 'B');
+CALL consultarActas(102);
+CALL consultarDesasignacion(102, '1S', 2023, 'B');
+CALL consultarDesasignacion(101, '1S', 2023, 'A');
+
+
+-- Borrar los datos de las tablas de la base de datos
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE CursoHabilitado;
+TRUNCATE HorarioEnCurso;
+TRUNCATE Horario;
+TRUNCATE Acta;
+TRUNCATE Nota;
+TRUNCATE Asignacion;
+TRUNCATE Estudiante;
+TRUNCATE Docente;
+TRUNCATE Curso;
+TRUNCATE Seccion;
+TRUNCATE Carrera;
+TRUNCATE Ciclo;
+TRUNCATE Bitacora;
+SET FOREIGN_KEY_CHECKS = 1;
 
