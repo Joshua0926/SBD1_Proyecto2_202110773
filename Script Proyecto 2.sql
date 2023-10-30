@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS Bitacora (
 -- Crear la tabla Carrera si no existe
 CREATE TABLE IF NOT EXISTS Carrera (
     id_carrera INT PRIMARY KEY,
-    nombre VARCHAR(20) UNIQUE
+    nombre VARCHAR(30) UNIQUE
 );
 INSERT IGNORE INTO Carrera (id_carrera, nombre) VALUES (0, 'Área Común');
 
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS Docente (
 -- Crear la tabla Curso si no existe
 CREATE TABLE IF NOT EXISTS Curso (
     id_curso INT PRIMARY KEY,
-    nombre VARCHAR(20),
+    nombre VARCHAR(40),
     creditos_necesarios INT,
     creditos_otorgados INT,
     id_carrera INT,
@@ -637,7 +637,7 @@ DELIMITER ;
 -- Crear el procedimiento para agregar datos a la tabla Carrera
 DELIMITER //
 CREATE PROCEDURE crearCarrera(
-    IN nombreCarrera VARCHAR(20)
+    IN nombreCarrera VARCHAR(30)
 )
 BEGIN
 	DECLARE nuevo_id INT;
@@ -672,7 +672,7 @@ CREATE PROCEDURE registrarEstudiante(
     IN carnet_param BIGINT,
     IN nombres_param VARCHAR(50),
     IN apellidos_param VARCHAR(50),
-    IN fecha_nacimiento_param DATE,
+    IN fecha_nacimiento_param VARCHAR(10),
     IN correo_param VARCHAR(100),
     IN telefono_param VARCHAR(15),
     IN direccion_param VARCHAR(100),
@@ -680,12 +680,14 @@ CREATE PROCEDURE registrarEstudiante(
     IN id_carrera_param INT
 )
 BEGIN
+	-- Convertir la fecha de nacimiento al formato Y-m-d
+    SET fecha_nacimiento_param = STR_TO_DATE(fecha_nacimiento_param, '%d-%m-%Y');
     -- Verificar si el carnet ya existe en la tabla Estudiante
     IF NOT EXISTS (SELECT 1 FROM Estudiante WHERE carnet = carnet_param) THEN
         -- Verificar el formato válido del correo
         IF correo_param REGEXP '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}$' THEN
             -- Formatear el teléfono (suponiendo que el código de área es 123)
-            SET telefono_param = SUBSTRING(telefono_param, 5);
+            -- SET telefono_param = SUBSTRING(telefono_param, 5);
             
             -- Insertar el estudiante en la tabla Estudiante
             INSERT INTO Estudiante (carnet, nombres, apellidos, fecha_nacimiento, correo, telefono, direccion, dpi, id_carrera, creditos, fecha_creacion)
@@ -706,20 +708,22 @@ DELIMITER ;
 DELIMITER //
 
 CREATE PROCEDURE registrarDocente(
-    IN p_id_docente BIGINT,
     IN p_nombres VARCHAR(50),
     IN p_apellidos VARCHAR(50),
-    IN p_fecha_nacimiento DATE,
+    IN p_fecha_nacimiento VARCHAR(10),
     IN p_correo VARCHAR(100),
     IN p_telefono VARCHAR(15),
     IN p_direccion VARCHAR(100),
-    IN p_dpi BIGINT(13)
+    IN p_dpi BIGINT(13),
+    IN p_id_docente BIGINT
 )
 BEGIN
+	-- Convertir la fecha de nacimiento al formato Y-m-d
+    SET p_fecha_nacimiento = STR_TO_DATE(p_fecha_nacimiento, '%d-%m-%Y');
     -- Verificar el formato válido del correo
     IF p_correo REGEXP '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]{2,4}$' THEN
         -- Formatear el teléfono (suponiendo que el código de área es +123)
-            SET p_telefono = SUBSTRING(p_telefono, 5);
+            -- SET p_telefono = SUBSTRING(p_telefono, 5);
 
         -- Verificar que el id_docente no exista previamente en la tabla
         IF NOT EXISTS (SELECT 1 FROM Docente WHERE id_docente = p_id_docente) THEN
@@ -744,7 +748,7 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE crearCurso(
     IN id_curso INT,
-    IN nombre VARCHAR(20),
+    IN nombre VARCHAR(40),
     IN creditos_necesarios INT,
     IN creditos_otorgados INT,
     IN id_carrera INT,
@@ -1143,26 +1147,28 @@ BEGIN
     IF NOT EsEnteroPositivo(codigo_curso) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se ha ingresado el código del curso correctamente';
     END IF;
+
     SELECT 
         c.id_curso AS CodigoCurso,
-        e.carnet AS Carnet,
-        CONCAT(e.nombres, ' ', e.apellidos) AS NombreCompleto,
+        e.id_estudiante AS Carnet,
+        CONCAT(e.nombre, ' ', e.apellido) AS NombreCompleto,
         CASE
             WHEN COUNT(n.id_nota) > 0 AND MIN(n.nota) >= 61 THEN 'APROBADO'
             ELSE 'REPROBADO'
         END AS Estado
     FROM Curso c
-    CROSS JOIN Estudiante e
-    LEFT JOIN Asignacion a ON e.carnet = a.carnet
+    JOIN CursoHabilitado ch ON c.id_curso = ch.id_curso
+    JOIN Seccion s ON ch.id_seccion = s.id_seccion
+    JOIN Ciclo ci ON ch.id_ciclo = ci.id_ciclo
+    JOIN Asignacion a ON a.id_cursohabilitado = ch.id_cursohabilitado
     LEFT JOIN Nota n ON a.id_asignacion = n.id_asignacion
-    INNER JOIN CursoHabilitado ch ON c.id_curso = ch.id_curso
-    INNER JOIN Seccion s ON ch.id_seccion = s.id_seccion
-    INNER JOIN Ciclo ci ON ch.id_ciclo = ci.id_ciclo
+    JOIN Estudiante e ON a.id_estudiante = e.id_estudiante
     WHERE c.id_curso = codigo_curso
     AND ci.nombre = ciclo_nombre
     AND YEAR(ch.fecha) = ciclo_anio
     AND s.letra = seccion_letra
-    GROUP BY c.id_curso, e.carnet, NombreCompleto;
+    AND a.asignado = 1 -- Añadir filtro para estudiantes asignados
+    GROUP BY c.id_curso, e.id_estudiante, NombreCompleto;
 END;
 //
 DELIMITER ;
@@ -1271,313 +1277,6 @@ END;
 //
 DELIMITER ;
 
--- Carga de datos a las Tablas
-CALL crearCarrera('Civil');
-CALL crearCarrera('Industrial');
-CALL crearCarrera('Sistemas');
-CALL crearCarrera('Mecanica');
-
-CALL registrarDocente(200200001,'Javier','Guzmán','1990-01-31','edu@gmail.com',78693541,'123 Main St, Ciudad 0101',2997859610101);
-CALL registrarDocente(200200002,'María','López','1985-07-15','maria@gmail.com',71234567,'456 Elm St, Villa 0101',2997859610102);
-CALL registrarDocente(200200003,'Carlos','Pérez','1980-03-22','carlos@gmail.com',65432109,'789 Oak St, Pueblo 0101',2997859610103);
-CALL registrarDocente(200200004,'Luisa','Ramírez','1988-11-10','luisa@gmail.com',89012345,'101 Pine St, Colonia 0101',2997859610104);
-CALL registrarDocente(200200005,'Ana','Martínez','1995-05-05','ana@gmail.com',62345678,'222 Cedar St, Aldea 0101',2997859610105);
-
-CALL registrarEstudiante(202300001,'Diego','Torres','2003-04-28','diego@example.com',65432109,'678 Avenida Secundaria',1234567890101,1);
-CALL registrarEstudiante(202300002,'Elena','Vargas','2001-10-03','elena@gmail.com',89674321,'234 Ruta Secundaria',9876543210102,2);
-CALL registrarEstudiante(202300003,'Pedro','López','2001-05-12','pedro@example.com',12345678,'789 Avenida Principal',1234567890123,1);
-CALL registrarEstudiante(202300004,'Laura','Ramírez','1999-12-08','laura@gmail.com',98765432,'101 Calle Principal',9876543210987,2);
-CALL registrarEstudiante(202300005,'Carlos','Martínez','2003-03-25','carlos@example.com',56473829,'234 Carretera Principal',9876543210101,3);
-CALL registrarEstudiante(202300006,'Ana','González','2000-09-17','ana@gmail.com',45678901,'567 Camino Principal',2997536980101,4);
-CALL registrarEstudiante(202300007,'Luis','Hernández','2004-07-31','luis@example.com',78901234,'123 Calle Secundaria',1234567890987,3);
-CALL registrarEstudiante(202300008,'María','Pérez','1997-02-14','maria@gmail.com',23568974,'890 Ruta Principal',2997536980102,2);
-CALL registrarEstudiante(202300009,'Juan','Rodríguez','2002-11-19','juan@example.com',78965432,'567 Ruta Secundaria',9876543210103,4);
-CALL registrarEstudiante(202300010,'Sofía','Díaz','1998-06-05','sofia@gmail.com',45678912,'456 Camino Secundario',2997536980104,3);
-
-CALL crearCurso(101, 'Mate Basica 1', 0, 6, 0, 1);
-CALL crearCurso(102, 'Etica', 0, 3, 0, 1);
-CALL crearCurso(103, 'Idioma Técnico', 0, 4, 0, 1);
-CALL crearCurso(104, 'Física General', 0, 5, 0, 1);
-CALL crearCurso(105, 'Química Aplicada', 0, 4, 0, 1);
-CALL crearCurso(201, 'Mecánica de Materiales', 0, 6, 1, 1);
-CALL crearCurso(202, 'Diseño Estructural', 0, 9, 1, 1);
-CALL crearCurso(203, 'Hidráulica', 10, 7, 1, 1);
-CALL crearCurso(204, 'Geotecnia', 8, 6, 1, 1);
-CALL crearCurso(205, 'Topografía', 6, 5, 1, 1);
-CALL crearCurso(301, 'Procesos de Manufactura', 0, 8, 2, 1);
-CALL crearCurso(302, 'Gestión de la Calidad', 0, 7, 2, 1);
-CALL crearCurso(303, 'Automatización Industrial', 10, 9, 2, 1);
-CALL crearCurso(304, 'Logística y Cadena de Suministro', 8, 7, 2, 1);
-CALL crearCurso(305, 'Diseño de Productos', 12, 10, 2, 1);
-CALL crearCurso(401, 'Programación Avanzada', 0, 7, 3, 1);
-CALL crearCurso(402, 'Bases de Datos', 0, 7, 3, 1);
-CALL crearCurso(403, 'Redes de Computadoras', 10, 8, 3, 1);
-CALL crearCurso(404, 'Inteligencia Artificial', 10, 9, 3, 1);
-CALL crearCurso(405, 'Seguridad Informática', 8, 7, 3, 1);
-CALL crearCurso(501, 'Termodinámica', 0, 7, 4, 1);
-CALL crearCurso(502, 'Dinámica de Máquinas', 0, 9, 4, 1);
-CALL crearCurso(503, 'Diseño de Elementos Mecánicos', 10, 8, 4, 1);
-CALL crearCurso(504, 'Mecánica de Fluidos', 8, 7, 4, 1);
-CALL crearCurso(505, 'Proyectos de Ingeniería Mecánica', 12, 10, 4, 1);
-
--- ---------------------------------------------------------------------------
-
--- Habilitación de Cursos de Área Común
-CALL habilitarCurso(101, '1S', 200200001, 75, 'A');
-CALL habilitarCurso(102, '1S', 200200002, 50, 'B');
-CALL habilitarCurso(101, '2S', 200200002, 50, 'C');
-CALL habilitarCurso(103, '1S', 200200003, 40, 'D');
-CALL habilitarCurso(104, '2S', 200200004, 90, 'E');
-
--- Habilitación de Cursos de Carrera Civil
-CALL habilitarCurso(201, '1S', 200200001, 70, 'A');
-CALL habilitarCurso(201, 'VJ', 200200001, 70, 'B');
-CALL habilitarCurso(202, '1S', 200200002, 35, 'C');
-CALL habilitarCurso(202, '2S', 200200002, 35, 'D');
-CALL habilitarCurso(203, '1S', 200200003, 80, 'E');
-CALL habilitarCurso(203, '2S', 200200003, 80, 'F');
-CALL habilitarCurso(204, '1S', 200200004, 45, 'A');
-CALL habilitarCurso(204, 'VD', 200200004, 45, 'B');
-CALL habilitarCurso(205, '1S', 200200005, 55, 'C');
-CALL habilitarCurso(205, 'VD', 200200005, 55, 'D');
-
--- Habilitación de Cursos de Carrera Industrial
-CALL habilitarCurso(301, '1S', 200200001, 95, 'E');
-CALL habilitarCurso(301, '2S', 200200001, 95, 'F');
-CALL habilitarCurso(302, '1S', 200200002, 30, 'A');
-CALL habilitarCurso(302, 'VJ', 200200002, 30, 'B');
-CALL habilitarCurso(303, 'VJ', 200200003, 110, 'C');
-CALL habilitarCurso(303, '2S', 200200003, 110, 'D');
-CALL habilitarCurso(304, '1S', 200200004, 75, 'E');
-CALL habilitarCurso(304, '2S', 200200004, 75, 'F');
-CALL habilitarCurso(305, '1S', 200200005, 65, 'A');
-CALL habilitarCurso(305, 'VD', 200200005, 65, 'B');
-
--- Habilitación de Cursos de Carrera de Sistemas
-CALL habilitarCurso(401, '1S', 200200001, 85, 'C');
-CALL habilitarCurso(401, '2S', 200200001, 85, 'D');
-CALL habilitarCurso(402, '1S', 200200002, 100, 'E');
-CALL habilitarCurso(402, 'VJ', 200200002, 100, 'F');
-CALL habilitarCurso(403, '1S', 200200003, 70, 'G');
-CALL habilitarCurso(403, '2S', 200200003, 70, 'H');
-CALL habilitarCurso(404, '1S', 200200004, 45, 'I');
-CALL habilitarCurso(404, '2S', 200200004, 45, 'J');
-CALL habilitarCurso(405, '1S', 200200005, 60, 'K');
-CALL habilitarCurso(405, 'VD', 200200005, 60, 'L');
-
--- Habilitación de Cursos de Carrera Mecánica
-CALL habilitarCurso(501, '1S', 200200001, 85, 'L');
-CALL habilitarCurso(501, '2S', 200200001, 85, 'M');
-CALL habilitarCurso(502, '1S', 200200002, 100, 'N');
-CALL habilitarCurso(502, '2S', 200200002, 100, 'O');
-CALL habilitarCurso(503, '1S', 200200003, 70, 'P');
-CALL habilitarCurso(503, 'VJ', 200200003, 70, 'A');
-CALL habilitarCurso(504, '1S', 200200004, 45, 'B');
-CALL habilitarCurso(504, '2S', 200200004, 45, 'C');
-CALL habilitarCurso(505, '2S', 200200005, 60, 'M');
-CALL habilitarCurso(505, 'VD', 200200005, 60, 'N');
-
-CALL agregarHorario(1, 2, '6:50-7:40');
-CALL agregarHorario(2, 5, '7:50-8:40');
-CALL agregarHorario(3, 3, '8:50-9:40');
-CALL agregarHorario(4, 7, '9:50-10:40');
-CALL agregarHorario(5, 1, '10:50-11:40');
-CALL agregarHorario(6, 4, '11:50-12:40');
-CALL agregarHorario(7, 6, '12:50-13:40');
-CALL agregarHorario(8, 2, '13:50-14:40');
-CALL agregarHorario(9, 5, '14:50-15:40');
-CALL agregarHorario(10, 3, '15:50-16:40');
-CALL agregarHorario(11, 1, '16:50-17:40');
-CALL agregarHorario(12, 4, '17:50-18:40');
-CALL agregarHorario(13, 2, '18:50-19:40');
-CALL agregarHorario(14, 6, '19:50-20:40');
-CALL agregarHorario(15, 1, '6:50-7:40');
-CALL agregarHorario(16, 4, '7:50-8:40');
-CALL agregarHorario(17, 6, '8:50-9:40');
-CALL agregarHorario(18, 2, '9:50-10:40');
-CALL agregarHorario(19, 5, '10:50-11:40');
-CALL agregarHorario(20, 3, '11:50-12:40');
-CALL agregarHorario(21, 2, '12:50-13:40');
-CALL agregarHorario(22, 5, '13:50-14:40');
-CALL agregarHorario(23, 3, '14:50-15:40');
-CALL agregarHorario(24, 7, '15:50-16:40');
-CALL agregarHorario(25, 1, '16:50-17:40');
-CALL agregarHorario(26, 4, '17:50-18:40');
-CALL agregarHorario(27, 6, '18:50-19:40');
-CALL agregarHorario(28, 2, '19:50-20:40');
-CALL agregarHorario(29, 5, '6:50-7:40');
-CALL agregarHorario(30, 3, '7:50-8:40');
-CALL agregarHorario(31, 1, '8:50-9:40');
-CALL agregarHorario(32, 4, '9:50-10:40');
-CALL agregarHorario(33, 2, '10:50-11:40');
-CALL agregarHorario(34, 6, '11:50-12:40');
-CALL agregarHorario(35, 1, '12:50-13:40');
-CALL agregarHorario(36, 4, '13:50-14:40');
-CALL agregarHorario(37, 6, '14:50-15:40');
-CALL agregarHorario(38, 2, '15:50-16:40');
-CALL agregarHorario(39, 5, '16:50-17:40');
-CALL agregarHorario(40, 3, '17:50-18:40');
-CALL agregarHorario(41, 2, '18:50-19:40');
-CALL agregarHorario(42, 5, '19:50-20:40');
-CALL agregarHorario(43, 3, '17:50-18:40');
-CALL agregarHorario(44, 2, '18:50-19:40');
-CALL agregarHorario(45, 5, '19:50-20:40');
-CALL agregarHorario(1, 4, '6:50-7:40');
-CALL agregarHorario(2, 7, '7:50-8:40');
-CALL agregarHorario(3, 4, '8:50-9:40');
-CALL agregarHorario(4, 1, '9:50-10:40');
-CALL agregarHorario(5, 6, '10:50-11:40');
-CALL agregarHorario(6, 5, '11:50-12:40');
-CALL agregarHorario(7, 3, '12:50-13:40');
-CALL agregarHorario(8, 2, '13:50-14:40');
-CALL agregarHorario(9, 1, '14:50-15:40');
-CALL agregarHorario(10, 5, '15:50-16:40');
-
--- Estudiante 202300001 (Diego) - Carrera: Civil (código 1)
-CALL asignarCurso(101, '1S', 'A', 202300001);
-CALL asignarCurso(102, '1S', 'B', 202300001);
-CALL asignarCurso(201, '1S', 'A', 202300001);
-CALL asignarCurso(202, '1S', 'C', 202300001);
-
--- Estudiante 202300002 (Elena) - Carrera: Industrial (código 2)
-CALL asignarCurso(101, '1S', 'A', 202300002);
-CALL asignarCurso(102, '1S', 'B', 202300002);
-CALL asignarCurso(301, '1S', 'E', 202300002);
-CALL asignarCurso(302, '1S', 'A', 202300002);
-
--- Estudiante 202300003 (Pedro) - Carrera: Civil (código 1)
-CALL asignarCurso(101, '1S', 'A', 202300003);
-CALL asignarCurso(102, '1S', 'B', 202300003);
-CALL asignarCurso(201, '1S', 'A', 202300003);
-CALL asignarCurso(202, '1S', 'C', 202300003);
-
--- Estudiante 202300004 (Laura) - Carrera: Industrial (código 2)
-CALL asignarCurso(101, '1S', 'A', 202300004);
-CALL asignarCurso(102, '1S', 'B', 202300004);
-CALL asignarCurso(301, '1S', 'E', 202300004);
-CALL asignarCurso(302, '1S', 'A', 202300004);
-
--- Estudiante 202300005 (Carlos) - Carrera: Sistemas (código 3)
-CALL asignarCurso(101, '1S', 'A', 202300005);
-CALL asignarCurso(102, '1S', 'B', 202300005);
-CALL asignarCurso(401, '1S', 'C', 202300005);
-CALL asignarCurso(402, '1S', 'E', 202300005);
-
--- Estudiante 202300006 (Ana) - Carrera: Mecánica (código 4)
-CALL asignarCurso(101, '1S', 'A', 202300006);
-CALL asignarCurso(102, '1S', 'B', 202300006);
-CALL asignarCurso(501, '1S', 'L', 202300006);
-CALL asignarCurso(502, '1S', 'N', 202300006);
-
--- Estudiante 202300007 (Luis) - Carrera: Sistemas (código 3)
-CALL asignarCurso(101, '1S', 'A', 202300007);
-CALL asignarCurso(102, '1S', 'B', 202300007);
-CALL asignarCurso(401, '1S', 'C', 202300007);
-CALL asignarCurso(402, '1S', 'E', 202300007);
-
--- Estudiante 202300008 (María) - Carrera: Industrial (código 2)
-CALL asignarCurso(101, '1S', 'A', 202300008);
-CALL asignarCurso(102, '1S', 'B', 202300008);
-CALL asignarCurso(301, '1S', 'E', 202300008);
-CALL asignarCurso(302, '1S', 'A', 202300008);
-
--- Estudiante 202300009 (Juan) - Carrera: Mecánica (código 4)
-CALL asignarCurso(101, '1S', 'A', 202300009);
-CALL asignarCurso(102, '1S', 'B', 202300009);
-CALL asignarCurso(501, '1S', 'L', 202300009);
-CALL asignarCurso(502, '1S', 'N', 202300009);
-
--- Estudiante 202300010 (Sofía) - Carrera: Sistemas (código 3)
-CALL asignarCurso(101, '1S', 'A', 202300010);
-CALL asignarCurso(102, '1S', 'B', 202300010);
-CALL asignarCurso(401, '1S', 'C', 202300010);
-CALL asignarCurso(402, '1S', 'E', 202300010);
-
-CALL desasignarCurso(101, '1S', 'A', 202300001); -- Estudiante 202300001
-CALL desasignarCurso(101, '1S', 'A', 202300002); -- Estudiante 202300002
-CALL desasignarCurso(101, '1S', 'A', 202300003); -- Estudiante 202300003
-CALL desasignarCurso(101, '1S', 'A', 202300004); -- Estudiante 202300004
-CALL desasignarCurso(101, '1S', 'A', 202300005); -- Estudiante 202300005
-
--- Estudiante 202300001 (Diego) - Carrera: Civil (código 1)
-CALL ingresarNota(102, '1S', 'B', 202300001, 78);
-CALL ingresarNota(201, '1S', 'A', 202300001, 92);
-CALL ingresarNota(202, '1S', 'C', 202300001, 85);
-
--- Estudiante 202300002 (Elena) - Carrera: Industrial (código 2)
-CALL ingresarNota(102, '1S', 'B', 202300002, 88);
-CALL ingresarNota(301, '1S', 'E', 202300002, 76);
-CALL ingresarNota(302, '1S', 'A', 202300002, 95);
-
--- Estudiante 202300003 (Pedro) - Carrera: Civil (código 1)
-CALL ingresarNota(102, '1S', 'B', 202300003, 88);
-CALL ingresarNota(201, '1S', 'A', 202300003, 75);
-CALL ingresarNota(202, '1S', 'C', 202300003, 91);
-
--- Estudiante 202300004 (Laura) - Carrera: Industrial (código 2)
-CALL ingresarNota(102, '1S', 'B', 202300004, 95);
-CALL ingresarNota(301, '1S', 'E', 202300004, 77);
-CALL ingresarNota(302, '1S', 'A', 202300004, 89);
-
--- Estudiante 202300005 (Carlos) - Carrera: Sistemas (código 3)
-CALL ingresarNota(102, '1S', 'B', 202300005, 78);
-CALL ingresarNota(401, '1S', 'C', 202300005, 88);
-CALL ingresarNota(402, '1S', 'E', 202300005, 95);
-
--- Estudiante 202300006 (Ana) - Carrera: Mecánica (código 4)
-CALL ingresarNota(101, '1S', 'A', 202300006, 61);
-CALL ingresarNota(102, '1S', 'B', 202300006, 60);
-CALL ingresarNota(501, '1S', 'L', 202300006, 92);
-CALL ingresarNota(502, '1S', 'N', 202300006, 79);
-
--- Estudiante 202300007 (Luis) - Carrera: Sistemas (código 3)
-CALL ingresarNota(101, '1S', 'A', 202300007, 85);
-CALL ingresarNota(102, '1S', 'B', 202300007, 90);
-CALL ingresarNota(401, '1S', 'C', 202300007, 35);
-CALL ingresarNota(402, '1S', 'E', 202300007, 75);
-
--- Estudiante 202300008 (María) - Carrera: Industrial (código 2)
-CALL ingresarNota(101, '1S', 'A', 202300008, 81);
-CALL ingresarNota(102, '1S', 'B', 202300008, 78);
-CALL ingresarNota(301, '1S', 'E', 202300008, 38);
-CALL ingresarNota(302, '1S', 'A', 202300008, 90);
-
--- Estudiante 202300009 (Juan) - Carrera: Mecánica (código 4)
-CALL ingresarNota(101, '1S', 'A', 202300009, 76);
-CALL ingresarNota(102, '1S', 'B', 202300009, 85);
-CALL ingresarNota(501, '1S', 'L', 202300009, 44);
-CALL ingresarNota(502, '1S', 'N', 202300009, 73);
-
--- Estudiante 202300010 (Sofía) - Carrera: Sistemas (código 3)
-CALL ingresarNota(101, '1S', 'A', 202300010, 80);
-CALL ingresarNota(102, '1S', 'B', 202300010, 82);
-CALL ingresarNota(401, '1S', 'C', 202300010, 60);
-CALL ingresarNota(402, '1S', 'E', 202300010, 91);
-
-
-CALL generarActa(101, '1S', 'A');
-CALL generarActa(102, '1S', 'B');
-CALL generarActa(201, '1S', 'A');
-CALL generarActa(202, '1S', 'C');
-CALL generarActa(301, '1S', 'E');
-CALL generarActa(302, '1S', 'A');
-CALL generarActa(401, '1S', 'C');
-CALL generarActa(402, '1S', 'E');
-CALL generarActa(501, '1S', 'L');
-CALL generarActa(502, '1S', 'N');
-
-CALL asignarCurso(101, '2S', 'C', 202300001); -- Estudiante 202300001
-CALL asignarCurso(101, '2S', 'C', 202300002); -- Estudiante 202300002
-CALL asignarCurso(101, '2S', 'C', 202300003); -- Estudiante 202300003
-CALL asignarCurso(101, '2S', 'C', 202300004); -- Estudiante 202300004
-CALL asignarCurso(101, '2S', 'C', 202300005); -- Estudiante 202300005
-CALL ingresarNota(101, '2S', 'C', 202300001, 61); -- Estudiante 202300001
-CALL ingresarNota(101, '2S', 'C', 202300002, 75); -- Estudiante 202300002
-CALL ingresarNota(101, '2S', 'C', 202300003, 58); -- Estudiante 202300003
-CALL ingresarNota(101, '2S', 'C', 202300004, 68); -- Estudiante 202300004
-CALL ingresarNota(101, '2S', 'C', 202300005, 92); -- Estudiante 202300005
-CALL generarActa(101, '2S', 'c');
-CALL asignarCurso(503, '1S', 'P', 202300006);
 
 
 -- Borrar los datos de las tablas de la base de datos
@@ -1597,3 +1296,75 @@ TRUNCATE Ciclo;
 TRUNCATE Bitacora;
 SET FOREIGN_KEY_CHECKS = 1;
 
+
+-- REGISTRO DE CARRERAS
+CALL crearCarrera('Ingenieria Civil');       -- 1  VALIDAR QUE LES QUEDE ESTE ID EN LA CARRERA CORRESPONDIENTE
+CALL crearCarrera('Ingenieria Industrial');  -- 2  VALIDAR QUE LES QUEDE ESTE ID EN LA CARRERA CORRESPONDIENTE
+CALL crearCarrera('Ingenieria Sistemas');    -- 3  VALIDAR QUE LES QUEDE ESTE ID EN LA CARRERA CORRESPONDIENTE
+CALL crearCarrera('Ingenieria Electronica'); -- 4  VALIDAR QUE LES QUEDE ESTE ID EN LA CARRERA CORRESPONDIENTE
+CALL crearCarrera('Ingenieria Mecanica');    -- 5  VALIDAR QUE LES QUEDE ESTE ID EN LA CARRERA CORRESPONDIENTE
+CALL crearCarrera('Ingenieria Mecatronica'); -- 6  VALIDAR QUE LES QUEDE ESTE ID EN LA CARRERA CORRESPONDIENTE
+CALL crearCarrera('Ingenieria Quimica');     -- 7  VALIDAR QUE LES QUEDE ESTE ID EN LA CARRERA CORRESPONDIENTE
+CALL crearCarrera('Ingenieria Ambiental');   -- 8  VALIDAR QUE LES QUEDE ESTE ID EN LA CARRERA CORRESPONDIENTE
+CALL crearCarrera('Ingenieria Materiales');  -- 9  VALIDAR QUE LES QUEDE ESTE ID EN LA CARRERA CORRESPONDIENTE
+CALL crearCarrera('Ingenieria Textil');      -- 10 VALIDAR QUE LES QUEDE ESTE ID EN LA CARRERA CORRESPONDIENTE
+
+-- REGISTRO DE DOCENTES
+CALL registrarDocente('Docente1','Apellido1','30-10-1999','aadf@ingenieria.usac.edu.gt',12345678,'direccion',12345678910,1);
+CALL registrarDocente('Docente2','Apellido2','20-11-1999','docente2@ingenieria.usac.edu.gt',12345678,'direcciondocente2',12345678911,2);
+CALL registrarDocente('Docente3','Apellido3','20-12-1980','docente3@ingenieria.usac.edu.gt',12345678,'direcciondocente3',12345678912,3);
+CALL registrarDocente('Docente4','Apellido4','20-11-1981','docente4@ingenieria.usac.edu.gt',12345678,'direcciondocente4',12345678913,4);
+CALL registrarDocente('Docente5','Apellido5','20-09-1982','docente5@ingenieria.usac.edu.gt',12345678,'direcciondocente5',12345678914,5);
+
+-- REGISTRO DE ESTUDIANTES
+-- SISTEMAS
+CALL registrarEstudiante(202000001,'Estudiante de','Sistemas Uno','30-10-1999','sistemasuno@gmail.com',12345678,'direccion estudiantes sistemas 1',337859510101,3);
+CALL registrarEstudiante(202000002,'Estudiante de','Sistemas Dos','3-5-2000','sistemasdos@gmail.com',12345678,'direccion estudiantes sistemas 2',32781580101,3);
+CALL registrarEstudiante(202000003,'Estudiante de','Sistemas Tres','3-5-2002','sistemastres@gmail.com',12345678,'direccion estudiantes sistemas 3',32791580101,3);
+-- CIVIL
+CALL registrarEstudiante(202100001,'Estudiante de','Civil Uno','3-5-1990','civiluno@gmail.com',12345678,'direccion de estudiante civil 1',3182781580101,1);
+CALL registrarEstudiante(202100002,'Estudiante de','Civil Dos','03-08-1998','civildos@gmail.com',12345678,'direccion de estudiante civil 2',3181781580101,1);
+-- INDUSTRIAL
+CALL registrarEstudiante(202200001,'Estudiante de','Industrial Uno','30-10-1999','industrialuno@gmail.com',12345678,'direccion de estudiante industrial 1',3878168901,2);
+CALL registrarEstudiante(202200002,'Estudiante de','Industrial Dos','20-10-1994','industrialdos@gmail.com',89765432,'direccion de estudiante industrial 2',29781580101,2);
+-- ELECTRONICA
+CALL registrarEstudiante(202300001, 'Estudiante de','Electronica Uno','20-10-2005','electronicauno@gmail.com',89765432,'direccion de estudiante electronica 1',29761580101,4);
+CALL registrarEstudiante(202300002, 'Estudiante de','Electronica Dos', '01-01-2008','electronicados@gmail.com',12345678,'direccion de estudiante electronica 2',387916890101,4);
+-- ESTUDIANTES RANDOM
+CALL registrarEstudiante(201710160, 'ESTUDIANTE','SISTEMAS RANDOM','20-08-1994','estudiasist@gmail.com',89765432,'direccionestudisist random',29791580101,3);
+CALL registrarEstudiante(201710161, 'ESTUDIANTE','CIVIL RANDOM','20-08-1995','estudiacivl@gmail.com',89765432,'direccionestudicivl random',30791580101,1);
+
+-- AREA COMUN
+CALL crearCurso(0006,'Idioma Tecnico 1',0,7,0,false); 
+CALL crearCurso(0007,'Idioma Tecnico 2',0,7,0,false);
+CALL crearCurso(101,'MB 1',0,7,0,true); 
+CALL crearCurso(103,'MB 2',0,7,0,true); 
+CALL crearCurso(017,'SOCIAL HUMANISTICA 1',0,4,0,true); 
+CALL crearCurso(019,'SOCIAL HUMANISTICA 2',0,4,0,true); 
+CALL crearCurso(348,'QUIMICA GENERAL',0,3,0,true); 
+CALL crearCurso(349,'QUIMICA GENERAL LABORATORIO',0,1,0,true);
+-- INGENIERIA EN SISTEMAS
+CALL crearCurso(777,'Compiladores 1',80,4,3,true); 
+CALL crearCurso(770,'INTR. A la Programacion y computacion 1',0,4,3,true); 
+CALL crearCurso(960,'MATE COMPUTO 1',33,5,3,true); 
+CALL crearCurso(795,'lOGICA DE SISTEMAS',33,2,3,true);
+CALL crearCurso(796,'LENGUAJES FORMALES Y DE PROGRAMACIÓN',0,3,3,TRUE);
+-- INGENIERIA INDUSTRIAL
+CALL crearCurso(123,'Curso Industrial 1',0,4,2,true); 
+CALL crearCurso(124,'Curso Industrial 2',0,4,2,true);
+CALL crearCurso(125,'Curso Industrial enseñar a pensar',10,2,2,false);
+CALL crearCurso(126,'Curso Industrial ENSEÑAR A DIBUJAR',2,4,2,true);
+CALL crearCurso(127,'Curso Industrial 3',8,4,2,true);
+-- INGENIERIA CIVIL
+CALL crearCurso(321,'Curso Civil 1',0,4,1,true);
+CALL crearCurso(322,'Curso Civil 2',4,4,1,true);
+CALL crearCurso(323,'Curso Civil 3',8,4,1,true);
+CALL crearCurso(324,'Curso Civil 4',12,4,1,true);
+CALL crearCurso(325,'Curso Civil 5',16,4,1,false);
+CALL crearCurso(0250,'Mecanica de Fluidos',0,5,1,true);
+-- INGENIERIA ELECTRONICA
+CALL crearCurso(421,'Curso Electronica 1',0,4,4,true);
+CALL crearCurso(422,'Curso Electronica 2',4,4,4,true);
+CALL crearCurso(423,'Curso Electronica 3',8,4,4,false);
+CALL crearCurso(424,'Curso Electronica 4',12,4,4,true);
+CALL crearCurso(425,'Curso Electronica 5',16,4,4,true);
